@@ -38,80 +38,80 @@ class CodeGenStage(Stage):
         )
     
     def _get_prompt_template(self) -> str:
-        return """你正在为 Python 目标 `{target_fqn}` 生成 pytest 单测代码。
+        return """You are generating pytest test code for the Python target `{target_fqn}`.
 
-当前阶段：Stage 4 - 生成测试代码 → 目标文件 `{test_file_path}`
+Current stage: Stage 4 - Generate Test Code -> Target file `{test_file_path}`
 
-## 迭代状态
+## Iteration State
 - epoch: {epoch_current}/{epoch_total}
 - analysis_plan: {analysis_plan_status}
 - active_group: {active_group_hint}
 
-## 核心约束（必须遵守）
-1) 语义分块：BLOCK 类型固定为 `HEADER` / `CASE_*` / `FOOTER`，`CASE` 表示单个用例或一个参数化组。
-   - 标记格式：
+## Core Constraints (Must Follow)
+1) Semantic blocks: BLOCK types are fixed as `HEADER` / `CASE_*` / `FOOTER`. Each `CASE` represents one test case or one parametrized group.
+   - Marker format:
      - `# ==== BLOCK:HEADER START ====`
      - `# ==== BLOCK:HEADER END ====`
      - `# ==== BLOCK:CASE_01 START ====`
      - `# ==== BLOCK:CASE_01 END ====`
      - `# ==== BLOCK:FOOTER START ====`
      - `# ==== BLOCK:FOOTER END ====`
-   - BLOCK_ID 必须稳定，禁止重命名或重排已有 BLOCK。
-2) 编辑次数限制：对任一 BLOCK_ID，最多 1 次读取 + 1 次替换。
-   - 优先使用 `replace_block`，避免反复 `read_file`/`part_read`/`search`。
-   - 若一次替换后仍失败，交给 analyze_results 决策是否重写。
-3) 单次写入限制：每次 `write_file`/`replace_block` 内容 ≤ 8KB。
-   - 超限时拆分为多个 CASE（例如 CASE_03A/CASE_03B），或使用参数化拆小块。
-4) 增量迭代：仅修改分析计划中标记的问题 BLOCK（每轮 1~3 个）。
-5) 禁止自循环：完成本轮替换后停止，不要在 generate_code 内多轮反复生成。
+   - `BLOCK_ID`s must remain stable. Do not rename or reorder existing BLOCKs.
+2) Edit budget: for any `BLOCK_ID`, allow at most one read and one replacement.
+   - Prefer `replace_block` to avoid repeated `read_file` / `part_read` / `search` calls.
+   - If the block still fails after one replacement, hand the decision back to `analyze_results`.
+3) Single-write limit: each `write_file` / `replace_block` payload must be <= 8KB.
+   - If content exceeds the limit, split it into multiple CASE blocks such as `CASE_03A` / `CASE_03B`, or reduce it through parametrization.
+4) Incremental iteration: modify only the problematic BLOCKs listed in the analysis plan (1-3 per round).
+5) No self-looping: stop after the current replacement round; do not perform repeated generation loops inside `generate_code`.
 
-## 输入
-- 必需：`requirements.md`、`test_plan.md`
-- **优先规格书**：如有 `test_plan.json`，以其为唯一生成依据；无则从 `test_plan.md` 推导同等结构。
-- 推荐：先用 `read_file` 读取 `function_doc.md`/`requirements.md`/`test_plan.md` 理解约束。
-- 迭代修复：优先读取分析计划（路径相对 {project_root}）：
+## Inputs
+- Required: `requirements.md` and `test_plan.md`
+- **Prefer the specification file**: if `test_plan.json` exists, treat it as the sole generation source; otherwise infer an equivalent structure from `test_plan.md`.
+- Recommended: first read `function_doc.md`, `requirements.md`, and `test_plan.md` with `read_file` to understand the constraints.
+- For iterative fixes, prefer reading the analysis plan at these paths relative to `{project_root}`:
   - `.attest/artifacts/analyze_results/current_analysis_plan.json`
-  - 若不存在再读 `.attest/artifacts/analyze_results/current_analysis.md`
-- 如需核对失败详情再读执行日志：`.attest/artifacts/execute_tests/current_execution_log.txt`
-- 可按需 `inspect_python` 目标获取签名、注解、docstring、源码片段。
-  - 如果目标文件已存在：**禁止使用 `write_file` 覆盖全文件**，仅允许按块替换。
+  - If it does not exist, read `.attest/artifacts/analyze_results/current_analysis.md` instead
+- Read `.attest/artifacts/execute_tests/current_execution_log.txt` only if you need to confirm failure details.
+- Use `inspect_python` as needed to obtain the target signature, annotations, docstring, and source excerpt.
+  - If the target file already exists, **do not overwrite the entire file with `write_file`**. Only block-level replacement is allowed.
 
-## 规格书（test_plan.json，如存在）
+## Specification (`test_plan.json`, if present)
 {test_plan_json}
 
-## 生成规则（按规格执行）
-1) **首轮**（epoch=1 且无 analysis_plan）：只生成 `SMOKE_SET`，只用 weak 断言；`DEFERRED_SET` 只保留占位。
-2) **后续轮**（analysis_plan 存在）：仅修改计划中列出的 BLOCK（1-3 个）；如无失败且 deferred 仍有，用优先级最高的 1 个 CASE 进入。
-3) **Low/Medium 禁止独立 CASE**：只能作为 High CASE 的参数维度扩展（param_extensions）。
-4) **断言分级**：只有当规格允许（final 或强断言轮）才启用 strong 断言。
-5) **预算严格执行**：遵守 size/max_lines/max_params/is_parametrized/requires_mock；超限必须拆分或减少组合。
-6) **模块分组**：若有 groups，只处理 active_group 对应的 CASE；其他 group 延后。
-7) **测试文件路径**：若规格给出 group 文件（test_files.groups），使用对应路径；否则用 `{test_file_path}`。
+## Generation Rules (Follow the Specification)
+1) **First round** (`epoch=1` and no analysis plan): generate only `SMOKE_SET` and use only weak assertions; keep `DEFERRED_SET` as placeholders.
+2) **Later rounds** (analysis plan exists): modify only the listed BLOCKs (1-3 of them). If there are no failures but deferred items remain, promote the highest-priority CASE.
+3) **Low/Medium must not be standalone CASE blocks**: they may only extend High-priority CASE blocks through parameter dimensions (`param_extensions`).
+4) **Assertion levels**: enable strong assertions only when the specification explicitly allows them (for example, in the final or strong-assertion round).
+5) **Strict budget enforcement**: follow `size`, `max_lines`, `max_params`, `is_parametrized`, and `requires_mock`. Split or reduce combinations if limits are exceeded.
+6) **Module grouping**: if `groups` exist, process only the CASE blocks for `active_group`; defer the other groups.
+7) **Test file path**: if the specification provides grouped paths in `test_files.groups`, use them; otherwise use `{test_file_path}`.
 
-## BLOCK 索引（若存在）
+## BLOCK Index (If Present)
 {block_index}
 
-## 输出
-- 采用 “先骨架、后分块填充” 写入 `{test_file_path}`（相对路径，位于 {project_root} 下）。
-  - 第 1 步：**仅当目标文件不存在时**，用 `write_file` 写入精简骨架（行数尽量 < 200），只包含 import、固定 helper/fixture、测试类/函数声明和 BLOCK 占位段（使用 START/END 标记）。占位段覆盖：`SMOKE_SET` + `DEFERRED_SET`（仅占位）。
-  - 第 2 步：按块顺序填充（HEADER → CASE_* → FOOTER），优先使用 `replace_block` 一次性写入每个块内容。
-  - 第 3 步：只有当块定位失败时才 `read_file`/`part_read` 辅助定位，并限制对该块的读取次数为 1 次。
-  - 禁止在一次 `write_file` 中写入完整大文件；禁止清空/覆盖已填充块；优先只修复失败断言，必要时新增用例，禁止删除已有测试。
-  - Medium/Low 场景只能通过参数化扩展 High CASE，不得新增独立 CASE。
+## Output
+- Write `{test_file_path}` using a skeleton-first, then block-fill approach (relative path under `{project_root}`).
+  - Step 1: **Only if the target file does not exist**, use `write_file` to create a compact skeleton (preferably under 200 lines) containing imports, fixed helpers/fixtures, test class/function declarations, and BLOCK placeholders marked with START/END. Placeholders should cover `SMOKE_SET` and `DEFERRED_SET`.
+  - Step 2: Fill blocks in order (`HEADER` -> `CASE_*` -> `FOOTER`), preferably using `replace_block` once per block.
+  - Step 3: Use `read_file` or `part_read` only when block location fails, and limit reads for that block to a single attempt.
+  - Do not write the entire large file in one `write_file` call; do not clear or overwrite filled blocks; prefer fixing failing assertions only; add new cases only when necessary; never delete existing tests.
+  - Medium/Low scenarios may only extend High-priority CASE blocks through parametrization and must not create standalone CASE blocks.
 
-## 代码要求
-1. 使用 `pytest`，命名规范：`test_*.py`、`test_*` 函数。
-2. 覆盖 test_plan 中的所有测试用例，补充 requirements 里的约束（shape/dtype/异常）。
-3. 构造输入时固定随机种子，避免依赖外部资源；如需外部依赖，使用 `unittest.mock`/`monkeypatch` stub。
-4. 对返回值/副作用/异常做明确断言；浮点比较使用合适的容差。
-5. 若目标是类/方法，包含实例化逻辑或使用简化的假实现/fixture。
-6. 兼容 CPU 环境，避免 GPU/分布式等重度依赖，除非需求明确。
+## Code Requirements
+1. Use `pytest` with standard naming: `test_*.py` files and `test_*` functions.
+2. Cover all test cases in `test_plan` and include the constraints from `requirements` such as shape, dtype, and exception behavior.
+3. Fix random seeds when constructing inputs, avoid external resources, and use `unittest.mock` / `monkeypatch` stubs when external dependencies are unavoidable.
+4. Assert return values, side effects, and exceptions explicitly; use suitable tolerances for floating-point comparisons.
+5. If the target is a class or method, include instantiation logic or use a simplified fake implementation / fixture.
+6. Keep the tests CPU-compatible and avoid heavy GPU or distributed dependencies unless `requirements` explicitly demand them.
 
-## 建议结构
+## Suggested Structure
 ```python
 import math
 import pytest
-from package.module import target  # 根据 {target_fqn} 填写
+from package.module import target  # Fill this in based on {target_fqn}
 
 def test_happy_path():
     ...
@@ -125,8 +125,8 @@ def test_invalid_inputs(...):
         ...
 ```
 
-在文件头部添加必要的 import（含目标函数/类），保持代码可直接运行。
-只通过上述多步工具写入文件，不要在对话中粘贴源代码。
+Add the required imports at the top of the file, including the target function or class, and keep the code directly runnable.
+Write the file only through the multi-step tool flow above. Do not paste source code into the conversation.
 """
 
     def _build_block_index(self, path: Path) -> str:

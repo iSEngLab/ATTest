@@ -1,49 +1,49 @@
-# 🚀 ATTest 批量测试快速开始
+# 🚀 ATTest Batch Testing Quick Start
 
-## ✅ 环境已就绪
+## ✅ Environment Ready
 
 - ✓ Python 3.10.19
 - ✓ PyTorch 1.13.0
 - ✓ TensorFlow 2.9.0
 - ✓ ATTest 0.1.0
 
-详见: `ENVIRONMENT_VERIFICATION_REPORT.md`
+See `ENVIRONMENT_VERIFICATION_REPORT.md` for details.
 
 ---
 
-## 🎯 开始批量测试 PyTorch 模块
+## 🎯 Start Batch Testing PyTorch Modules
 
-### 方法1: 交互式启动器（最简单）
+### Method 1: Interactive Launcher (Simplest)
 
 ```bash
 ./run_batch_test.sh
 ```
 
-**选择操作:**
-- 1 → 开始/继续测试（5 epochs）
-- 2 → 开始/继续测试（3 epochs）
-- 3 → 重新开始
-- 6 → 测试单个模块
+**Choose an action:**
+- `1` → Start or continue testing (5 epochs)
+- `2` → Start or continue testing (3 epochs)
+- `3` → Restart from scratch
+- `6` → Test a single module
 
-### 方法2: 命令行
+### Method 2: Command Line
 
 ```bash
-# 开始批量测试（默认5 epochs）
+# Start batch testing (default: 5 epochs)
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py
 
-# 简化版本（如果已设置PATH或别名）
+# Short version if PATH or an alias is already configured
 python batch_test_torch.py
 ```
 
 ---
 
-## 📊 测试范围
+## 📊 Test Scope
 
-### PyTorch模块: **51个**
+### PyTorch Modules: **51**
 
-来自 `artifact/rundefinitions/pynguinml-torch.xml`
+Defined in `artifact/rundefinitions/pynguinml-torch.xml`
 
-示例模块:
+Example modules:
 ```
 1. torch._linalg_utils
 2. torch._lobpcg
@@ -54,7 +54,7 @@ python batch_test_torch.py
 51. torch.utils.data.dataset
 ```
 
-完整列表运行:
+Run the full list inspection:
 ```bash
 /opt/anaconda3/envs/attest-experiment/bin/python -c "
 import xml.etree.ElementTree as ET
@@ -66,15 +66,15 @@ for i, m in enumerate(tree.findall('.//module'), 1):
 
 ---
 
-## 📁 输出结构
+## 📁 Output Layout
 
 ```
 exam/torch/
-├── batch_test_state.json      # 测试进度
-├── batch_test.log             # 详细日志
-├── batch_test_report.md       # 测试报告
+├── batch_test_state.json      # Testing progress
+├── batch_test.log             # Detailed log
+├── batch_test_report.md       # Test report
 └── torch/
-    ├── _linalg_utils/         # 模块1
+    ├── _linalg_utils/         # Module 1
     │   ├── .attest/
     │   │   ├── artifacts/
     │   │   └── state.json
@@ -82,90 +82,90 @@ exam/torch/
     │   │   └── test_*.py
     │   ├── coverage.xml
     │   └── final_report.md
-    ├── _lobpcg/               # 模块2
-    └── ...                    # 其他49个模块
+    ├── _lobpcg/               # Module 2
+    └── ...                    # The other 49 modules
 ```
 
 ---
 
-## 🔍 监控进度
+## 🔍 Monitor Progress
 
-### 实时查看日志
+### Watch Logs in Real Time
 
 ```bash
-# 查看执行日志
+# View execution log
 tail -f exam/torch/batch_test.log
 
-# 查看当前状态
+# View current state
 cat exam/torch/batch_test_state.json | python -m json.tool
 ```
 
-### 查看进度统计
+### View Progress Statistics
 
 ```bash
-# 使用jq（如果已安装）
+# Using jq, if installed
 jq '.completed | length' exam/torch/batch_test_state.json
 jq '.failed | length' exam/torch/batch_test_state.json
 
-# 或使用Python
+# Or using Python
 python -c "
 import json
 with open('exam/torch/batch_test_state.json') as f:
     state = json.load(f)
-    print(f'已完成: {len(state[\"completed\"])}')
-    print(f'失败: {len(state[\"failed\"])}')
-    print(f'当前索引: {state[\"current_index\"]}')
+    print(f'Completed: {len(state[\"completed\"])}')
+    print(f'Failed: {len(state[\"failed\"])}')
+    print(f'Current index: {state[\"current_index\"]}')
 "
 ```
 
 ---
 
-## ⏸️ 中断与恢复
+## ⏸️ Interrupt and Resume
 
-### 中断测试
+### Interrupt a Run
 
-按 `Ctrl+C` 中断，状态会自动保存。
+Press `Ctrl+C` to stop the run. State is saved automatically.
 
-### 恢复测试
+### Resume a Run
 
 ```bash
-# 直接运行相同命令，自动从上次位置继续
+# Re-run the same command and continue automatically
 ./run_batch_test.sh
 
-# 或
+# Or
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py
 ```
 
-### 从特定位置开始
+### Start from a Specific Position
 
 ```bash
-# 从第10个模块开始（索引从0开始）
+# Start from the 10th module (0-based index)
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --start 9
 
-# 从第25个模块开始
+# Start from the 25th module
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --start 24
 ```
 
-### 重新开始
+### Restart from Scratch
 
 ```bash
-# 清除进度，从头开始
+# Clear progress and restart
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --reset
 ```
 
 ---
 
-## 🧪 测试单个模块
+## 🧪 Test a Single Module
 
-### 方法1: 使用启动器
+### Method 1: Use the Launcher
 
 ```bash
 ./run_batch_test.sh
-# 选择 6: 测试单个模块
-# 输入: torch.mean
+# Choose option 6: test a single module
+# Input: torch.mean
 ```
 
-### 方法2: 直接命令
+### Method 2: Run the Command Directly
 
 ```bash
 /opt/anaconda3/envs/attest-experiment/bin/python -m attest_cli.cli run \
@@ -177,92 +177,92 @@ with open('exam/torch/batch_test_state.json') as f:
 
 ---
 
-## 📝 查看结果
+## 📝 View Results
 
-### 测试报告
+### Test Reports
 
 ```bash
-# 查看批量测试总报告
+# View the overall batch test report
 cat exam/torch/batch_test_report.md
 
-# 查看单个模块报告
+# View a single module report
 cat exam/torch/torch/_linalg_utils/final_report.md
 ```
 
-### 覆盖率数据
+### Coverage Data
 
 ```bash
-# 查看单个模块覆盖率
+# View coverage for a single module
 cat exam/torch/torch/_linalg_utils/coverage.xml
 ```
 
-### 分析报告
+### Analysis Report
 
 ```bash
-# 查看分析结果
+# View analysis output
 cat exam/torch/torch/_linalg_utils/analysis.md
 ```
 
 ---
 
-## ⚙️ 高级选项
+## ⚙️ Advanced Options
 
-### 自定义epochs
+### Customize Epochs
 
 ```bash
-# 使用3个epoch（更快）
+# Use 3 epochs for a faster run
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --epoch 3
 
-# 使用10个epoch（更彻底）
+# Use 10 epochs for a more thorough run
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --epoch 10
 ```
 
-### 指定工作目录
+### Specify a Workspace
 
 ```bash
-# 使用不同的工作目录
+# Use a different working directory
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py \
   --workspace ./my_custom_workspace
 ```
 
-### 后台运行
+### Run in the Background
 
 ```bash
-# 使用nohup
+# Use nohup
 nohup /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py > batch.out 2>&1 &
 
-# 查看输出
+# View output
 tail -f batch.out
 ```
 
 ---
 
-## ⏱️ 时间估算
+## ⏱️ Time Estimate
 
-基于经验值：
+Typical durations:
 
-| 项目 | 时间 |
+| Item | Time |
 |------|------|
-| 单个简单模块 | 3-5分钟 |
-| 单个复杂模块 | 5-15分钟 |
-| 全部51个模块 | **4-12小时** |
+| Single simple module | 3-5 minutes |
+| Single complex module | 5-15 minutes |
+| All 51 modules | **4-12 hours** |
 
-**建议**: 使用后台运行或tmux/screen会话
+**Recommendation**: Run in the background or inside a `tmux`/`screen` session.
 
 ---
 
-## 🛠️ 故障排除
+## 🛠️ Troubleshooting
 
-### 问题1: conda activate失败
+### Issue 1: `conda activate` Fails
 
-**解决**: 使用完整路径，无需activate
+**Solution**: Use the full interpreter path directly without `activate`.
 
-详见: `CONDA_ACTIVATION.md`
+See `CONDA_ACTIVATION.md` for details.
 
-### 问题2: 模块导入失败
+### Issue 2: Module Import Fails
 
 ```bash
-# 验证环境
+# Verify the environment
 /opt/anaconda3/envs/attest-experiment/bin/python -c "
 import torch
 import tensorflow as tf
@@ -270,81 +270,82 @@ print('OK')
 "
 ```
 
-### 问题3: 磁盘空间不足
+### Issue 3: Insufficient Disk Space
 
 ```bash
-# 检查空间
+# Check available space
 df -h .
 
-# 清理旧版本文件
+# Clean old versioned directories
 find exam/torch -name "v[0-9]*" -type d -exec rm -rf {} +
 ```
 
-### 问题4: 测试超时
+### Issue 4: Test Timeout
 
-编辑 `batch_test_torch.py`，修改timeout值：
+Edit `batch_test_torch.py` and update the timeout value:
+
 ```python
-timeout=3600  # 改为更大的值，如7200（2小时）
+timeout=3600  # Increase this value, for example to 7200 (2 hours)
 ```
 
 ---
 
-## 📚 相关文档
+## 📚 Related Documents
 
-| 文档 | 说明 |
+| Document | Description |
 |------|------|
-| `BATCH_TEST_GUIDE.md` | 详细使用指南 |
-| `ENVIRONMENT_VERIFICATION_REPORT.md` | 环境验证报告 |
-| `CONDA_ACTIVATION.md` | Conda激活说明 |
-| `MODIFICATION_SUMMARY.md` | 代码修改总结 |
+| `BATCH_TEST_GUIDE.md` | Detailed usage guide |
+| `ENVIRONMENT_VERIFICATION_REPORT.md` | Environment verification report |
+| `CONDA_ACTIVATION.md` | Conda activation notes |
+| `MODIFICATION_SUMMARY.md` | Summary of code changes |
 
 ---
 
-## 📞 获取帮助
+## 📞 Get Help
 
 ```bash
-# 查看批量测试帮助
+# Show batch testing help
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --help
 
-# 查看启动器选项
+# Show launcher options
 ./run_batch_test.sh
 ```
 
 ---
 
-## ✨ 快速命令参考
+## ✨ Quick Command Reference
 
 ```bash
-# 1. 开始测试
+# 1. Start testing
 ./run_batch_test.sh
 
-# 2. 查看进度
+# 2. Check progress
 cat exam/torch/batch_test_state.json
 
-# 3. 查看日志
+# 3. View logs
 tail -f exam/torch/batch_test.log
 
-# 4. 查看报告
+# 4. View reports
 cat exam/torch/batch_test_report.md
 
-# 5. 测试单个模块
-./run_batch_test.sh  # 选择选项6
+# 5. Test a single module
+./run_batch_test.sh  # Choose option 6
 
-# 6. 环境验证
+# 6. Verify the environment
 ./start_experiment_env.sh
 
-# 7. 重新开始
+# 7. Restart from scratch
 /opt/anaconda3/envs/attest-experiment/bin/python batch_test_torch.py --reset
 ```
 
 ---
 
-## 🎉 开始测试吧！
+## 🎉 Start Testing
 
-一切就绪，现在可以开始批量测试了：
+Everything is ready. You can start batch testing now:
 
 ```bash
 ./run_batch_test.sh
 ```
 
-祝测试顺利！ 🚀
+Good luck with the run.

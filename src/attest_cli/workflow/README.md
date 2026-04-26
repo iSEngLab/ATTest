@@ -68,7 +68,7 @@ attest test --op add --arch x86 --resume
 
 ### Intelligent Feedback
 - **Special Commands**: `/next`, `/retry`, `/goto <stage>`, `/quit`
-- **Natural Language**: "需要增加边界测试"
+- **Natural Language**: "Add more boundary-condition tests"
 - **LLM-powered Intent Classification**: Understands user intent
 
 ### State Management

@@ -20,8 +20,8 @@ from .utils import slugify_target
 
 
 app = typer.Typer(help="ATTest CLI - Python API test generation assistant")
-config_app = typer.Typer(help="配置管理")
-sessions_app = typer.Typer(help="会话管理")
+config_app = typer.Typer(help="Configuration Management")
+sessions_app = typer.Typer(help="Session Management")
 app.add_typer(config_app, name="config")
 app.add_typer(sessions_app, name="sessions")
 
@@ -29,13 +29,13 @@ app.add_typer(sessions_app, name="sessions")
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
-    workspace: Optional[Path] = typer.Option(None, help="工作目录"),
-    auto_approve: bool = typer.Option(False, help="自动批准写/执行"),
+    workspace: Optional[Path] = typer.Option(None, help="Workspace"),
+    auto_approve: bool = typer.Option(False, help="Auto-approve write/exec"),
 ):
     """
-    ATTest CLI - Python/PyTorch/TensorFlow 测试用例生成工具
+    ATTest CLI - Test generation tool for Python/PyTorch/TensorFlow
 
-    默认启动交互式聊天模式，可使用 /workflow 命令进入测试生成工作流
+    Starts in interactive chat mode by default; use `/workflow` to enter the test generation workflow
     """
     if ctx.invoked_subcommand is None:
         # No subcommand specified, enter interactive chat mode
@@ -48,7 +48,7 @@ def main(
 
 def run_interactive_mode(workspace: str, auto_approve: bool = False):
     """
-    启动交互式模式，显示欢迎界面并进入chat循环
+    Start interactive mode, show the welcome screen, and enter the chat loop
     """
     cfg = load_config()
     
@@ -86,14 +86,14 @@ def config_set(key: str, value: str):
             except ValueError:
                 parsed = value
     set_config_value(key, parsed)
-    typer.echo(f"已设置 {key} = {parsed}")
+    typer.echo(f"Set {key} = {parsed}")
 
 
 @config_app.command("get")
 def config_get(key: str):
     val = get_config_value(key)
     if val is None:
-        typer.echo("未找到")
+        typer.echo("Not found")
     else:
         typer.echo(val)
 
@@ -101,14 +101,14 @@ def config_get(key: str):
 @config_app.command("list")
 def config_list():
     typer.echo(json.dumps(list_config(), indent=2, ensure_ascii=False))
-    typer.echo(f"\n配置文件: {CONFIG_PATH}")
+    typer.echo(f"\nConfig file: {CONFIG_PATH}")
 
 
 @sessions_app.command("list")
 def sessions_list():
     sessions = list_sessions()
     if not sessions:
-        typer.echo("无会话")
+        typer.echo("No sessions")
     else:
         for s in sessions:
             typer.echo(s)
@@ -117,15 +117,15 @@ def sessions_list():
 @sessions_app.command("clear")
 def sessions_clear(session_id: str):
     clear_session(session_id)
-    typer.echo(f"已清除 {session_id}")
+    typer.echo(f"Cleared {session_id}")
 
 
 @app.command("chat")
 def run_chat_mode(
-    workspace: Path = typer.Option(".", help="工作目录"),
-    auto_approve: bool = typer.Option(False, help="自动批准写/执行"),
+    workspace: Path = typer.Option(".", help="Workspace"),
+    auto_approve: bool = typer.Option(False, help="Auto-approve write/exec"),
 ):
-    """启动交互式聊天模式（遗留命令，推荐直接使用 attest）"""
+    """Start interactive chat mode (legacy command; using `attest` directly is recommended)"""
     workspace = workspace.expanduser().resolve()
     workspace.mkdir(parents=True, exist_ok=True)
     run_interactive_mode(str(workspace), auto_approve)
@@ -175,27 +175,27 @@ def _launch_python_workflow(
 
 @app.command("run")
 def run_python(
-    func: str = typer.Option(..., "-f", "--func", help="目标函数全限定名，如 package.module:func 或 package.module.Class.method"),
-    workspace: Path = typer.Option(".", "-w", "--workspace", help="工作目录（将自动加入 PYTHONPATH）"),
-    project_root: Optional[Path] = typer.Option(None, "-p", "--project-root", help="项目根目录，默认与 workspace 相同"),
-    mode: str = typer.Option("interactive", "-m", "--mode", help="模式: interactive | full-auto"),
-    resume: bool = typer.Option(False, "-r", "--resume", help="恢复上次中断的工作流"),
-    epoch: int = typer.Option(1, "-e", "--epoch", help="全自动模式下的迭代轮数：在 analyze_results 后回到 generate_code 迭代指定轮数，再生成报告"),
+    func: str = typer.Option(..., "-f", "--func", help="Fully qualified target function name, for example `package.module:func` or `package.module.Class.method`"),
+    workspace: Path = typer.Option(".", "-w", "--workspace", help="Workspace (automatically added to PYTHONPATH)"),
+    project_root: Optional[Path] = typer.Option(None, "-p", "--project-root", help="Project root directory; defaults to the same value as `workspace`"),
+    mode: str = typer.Option("interactive", "-m", "--mode", help="Mode: `interactive` | `full-auto`"),
+    resume: bool = typer.Option(False, "-r", "--resume", help="Resume the previously interrupted workflow"),
+    epoch: int = typer.Option(1, "-e", "--epoch", help="Iteration count in full-auto mode: after `analyze_results`, return to `generate_code` for the specified number of rounds, then generate the report"),
 ):
-    """针对 Python 函数生成并运行测试用例"""
+    """Generate and run test cases for a Python function"""
     _launch_python_workflow(func, workspace, project_root, mode, resume, epoch)
 
 
 @app.command("test")
 def run_attest(
-    func: str = typer.Option(..., "-f", "--func", help="兼容命令，填入目标函数全限定名，如 torch.nn.functional.relu"),
-    workspace: Path = typer.Option(".", "-w", "--workspace", help="工作目录（默认作为项目根目录）"),
-    project_root: Optional[Path] = typer.Option(None, "-p", "--project-root", help="项目根目录"),
-    mode: str = typer.Option("interactive", "-m", "--mode", help="模式: interactive | full-auto"),
-    resume: bool = typer.Option(False, "-r", "--resume", help="恢复上次中断的工作流"),
-    epoch: int = typer.Option(1, "-e", "--epoch", help="全自动模式迭代轮数：分析后回到生成代码重复，默认1"),
+    func: str = typer.Option(..., "-f", "--func", help="Compatibility command. Provide the fully qualified target function name, such as `torch.nn.functional.relu`"),
+    workspace: Path = typer.Option(".", "-w", "--workspace", help="Workspace (used as the project root by default)"),
+    project_root: Optional[Path] = typer.Option(None, "-p", "--project-root", help="Project root directory"),
+    mode: str = typer.Option("interactive", "-m", "--mode", help="Mode: `interactive` | `full-auto`"),
+    resume: bool = typer.Option(False, "-r", "--resume", help="Resume the previously interrupted workflow"),
+    epoch: int = typer.Option(1, "-e", "--epoch", help="Iteration count in full-auto mode: after analysis, return to code generation; defaults to 1"),
 ):
-    """运行测试生成工作流（兼容旧命令）"""
+    """Run the test generation workflow (legacy-compatible command)"""
     _launch_python_workflow(func, workspace, project_root, mode, resume, epoch)
 
 

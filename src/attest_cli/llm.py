@@ -102,8 +102,8 @@ class LLMClient:
     def _prepare_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Normalize messages for target model.
-        - deepseek-reasoner: 保留 reasoning_content（助手消息缺失则补空字符串）
-        - 其他模型: 移除 reasoning_content，避免不支持的字段导致 400
+        - deepseek-reasoner: preserve `reasoning_content` and add an empty string if the assistant message omits it
+        - Other models: remove `reasoning_content` to avoid HTTP 400 errors from unsupported fields
         """
         requires_reasoning = "deepseek-reasoner" in (self.model or "").lower()
         normalized: List[Dict[str, Any]] = []

@@ -193,11 +193,11 @@ class ExecutionStage(Stage):
         if run_result.ok:
             print("     ✓ Tests executed successfully")
             exit_code = "0"
-            message = "测试执行成功"
+            message = "Test execution succeeded"
         else:
             print("     ⚠️ Tests executed with errors")
             exit_code = "1"
-            message = "测试未完全通过（退出码 1），详见 execution_log.txt"
+            message = "Tests did not pass completely (exit code 1). See `execution_log.txt` for details"
         
         outputs["exit_code.txt"] = exit_code
         state.save_artifact("exit_code.txt", exit_code)

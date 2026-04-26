@@ -1,58 +1,58 @@
-# ATTest-CLI 快速参考
+# ATTest Quick Reference
 
-## 🚀 常用命令
+## 🚀 Common Commands
 
 ```bash
-# 默认交互模式（聊天）
+# Default interactive mode (chat)
 attest [--workspace DIR] [--auto-approve]
 
-# 聊天模式（显式）
+# Explicit chat mode
 attest chat [--workspace DIR] [--auto-approve]
 
-# 工作流模式（交互式）- 短参数形式
+# Workflow mode (interactive) - short flags
 attest run -f package.module:function [--workspace DIR] [--project-root DIR]
 
-# 工作流模式（交互式）- 长参数形式
+# Workflow mode (interactive) - long flags
 attest run --func package.module:function [--workspace DIR]
 
-# 工作流模式（全自动）
+# Workflow mode (fully automatic)
 attest run -f package.module:function --mode full-auto
 
-# 全自动 + 多轮迭代（如 3 轮）
+# Fully automatic mode with multi-round iteration (for example, 3 rounds)
 attest run -f package.module:function --mode full-auto --epoch 3
 
-# 恢复中断的工作流
+# Resume an interrupted workflow
 attest run -f package.module:function --resume
 
-# 配置管理
+# Configuration management
 attest config list
 attest config set KEY VALUE
 attest config get KEY
 
-# 会话管理
+# Session management
 attest sessions list
 attest sessions clear <session_id>
 ```
 
-## 📝 Workflow 交互命令
+## 📝 Workflow Interactive Commands
 
-在每个阶段完成后，你可以使用：
+After each stage completes, you can use:
 
-| 命令 | 说明 |
+| Command | Description |
 |------|------|
-| `Enter` | 批准并继续下一阶段 |
-| `/next` | 同上 |
-| `/regenerate` | 重新生成当前阶段 |
-| `/retry` | 重新生成（可选带反馈，如 `/retry 需要覆盖空张量`） |
-| `/goto <stage>` | 跳转到指定阶段（如 `/goto generate_code`） |
-| `/status` | 查看工作流状态 |
-| `/help` | 显示帮助信息 |
-| `/quit` | 退出工作流 |
-| `<自然语言>` | 智能理解反馈（SupervisorAgent 自动解析） |
+| `Enter` | Approve and continue to the next stage |
+| `/next` | Same as above |
+| `/regenerate` | Regenerate the current stage |
+| `/retry` | Regenerate with optional feedback, such as `/retry cover empty tensors` |
+| `/goto <stage>` | Jump to a target stage, such as `/goto generate_code` |
+| `/status` | Show workflow status |
+| `/help` | Show help information |
+| `/quit` | Exit the workflow |
+| `<natural language>` | Provide feedback interpreted automatically by `SupervisorAgent` |
 
-## 🔧 配置自定义构建命令
+## 🔧 Custom Build Commands
 
-编辑 `~/.attest_cli/config.json`：
+Edit `~/.attest_cli/config.json`:
 
 ```json
 {
@@ -80,99 +80,99 @@ attest sessions clear <session_id>
 }
 ```
 
-可用变量：
-- `{target}` / `{target_slug}` - 目标函数 FQN 及其 slug
-- `{project_root}` - 项目根目录
-- `{test_file_path}` - 生成的 pytest 文件路径
+Available variables:
+- `{target}` / `{target_slug}` - Target function FQN and its slug
+- `{project_root}` - Project root directory
+- `{test_file_path}` - Generated pytest file path
 
-## 🎯 Workflow 7 阶段
+## 🎯 Workflow Stages
 
 ```
-1. understand_function    → 分析 Python 目标
-2. generate_requirements  → 生成需求
-3. design_test_plan       → 设计测试计划
-4. generate_code          → 生成 pytest 代码
-5. execute_tests          → 运行 pytest
-6. analyze_results        → 分析结果
-7. generate_report        → 生成报告
+1. understand_function    → Analyze the Python target
+2. generate_requirements  → Generate requirements
+3. design_test_plan       → Design the test plan
+4. generate_code          → Generate pytest code
+5. execute_tests          → Run pytest
+6. analyze_results        → Analyze results
+7. generate_report        → Generate the report
 ```
 
-## 📂 产物位置
+## 📂 Artifact Locations
 
 ```
 workspace/
 ├── .attest/
-│   ├── state.json                    # 工作流状态
-│   ├── artifacts/                    # 各阶段产物（带版本控制）
+│   ├── state.json                    # Workflow state
+│   ├── artifacts/                    # Per-stage artifacts with versioning
 │   │   ├── understand_function/
-│   │   │   ├── current_function_doc.md    # 当前版本符号链接
-│   │   │   └── v1_function_doc.md         # 版本化存储
+│   │   │   ├── current_function_doc.md    # Symlink to the current version
+│   │   │   └── v1_function_doc.md         # Versioned storage
 │   │   ├── generate_requirements/
 │   │   │   ├── current_requirements.md
 │   │   │   └── v1_requirements.md
 │   │   └── ...
-│   └── logs/                         # 日志目录
-├── tests/test_<target_slug>.py       # 生成的 pytest 文件
-└── （可选）其他项目文件
+│   └── logs/                         # Log directory
+├── tests/test_<target_slug>.py       # Generated pytest file
+└── Optional project files
 ```
 
-## 🛠️ 快速定制
+## 🛠️ Quick Customization
 
-### 修改 Stage Prompt
+### Modify a Stage Prompt
 
 ```bash
 vi src/attest_cli/workflow/stages/requirements.py
 ```
 
-编辑 `_get_prompt_template()` 方法。
+Edit `_get_prompt_template()`.
 
-### 添加新 Tool
+### Add a New Tool
 
-1. 在 `src/attest_cli/tools/builtin.py` 添加类
-2. 在 `src/attest_cli/tools/runner.py` 注册
-3. 在 Stage 的 `tools` 列表中使用
+1. Add the class in `src/attest_cli/tools/builtin.py`
+2. Register it in `src/attest_cli/tools/runner.py`
+3. Use it in a stage's `tools` list
 
-### 调试
+### Debugging
 
 ```bash
-# 查看状态
+# View workflow state
 cat workspace/.attest/state.json
 
-# 查看产物
+# View artifacts
 ls workspace/.attest/artifacts/
 
-# 单元测试
+# Unit tests
 pytest test_workflow_e2e.py -q
 pytest test_smoke.py -q
 ```
 
-## ⚡ 示例
+## ⚡ Examples
 
-### 标准使用
+### Standard Usage
 
 ```bash
 attest run -f torch.nn.functional.relu --workspace ~/my-proj
 ```
 
-### 覆盖自定义 pytest 命令
+### Override the Custom Pytest Command
 
 ```bash
-# 1. 配置
+# 1. Configure
 attest config set commands.run_test "PYTHONPATH={project_root}:$PYTHONPATH pytest -q {test_file_path} -k gpu"
 
-# 2. 运行
+# 2. Run
 attest run -f torch.add --mode full-auto
 ```
 
-### 中途修改需求
+### Modify Requirements Mid-Workflow
 
 ```
-阶段 2 完成后：
-> 需求太简单，需要增加并发测试和性能测试
+After stage 2 completes:
+> The requirements are too simple. Add concurrency tests and performance tests.
 
-阶段继续，需求会被重新生成
+The workflow continues and regenerates the requirements.
 ```
 
 ---
 
-详细文档请参考 [WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md)
+See [WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md) for the full documentation.

@@ -30,29 +30,29 @@ class ReportStage(Stage):
         )
     
     def _get_prompt_template(self) -> str:
-        return """你是报告生成助手，请基于以下产物汇总 Python 目标 `{target_fqn}` 的测试结果。
+        return """You are the report generation assistant. Summarize the test results for the Python target `{target_fqn}` based on the artifacts below.
 
-## 可用材料
-- 函数说明: `function_doc.md`
-- 需求: `requirements.md`
-- 测试计划: `test_plan.md`
-- 结果分析: `analysis.md`
-- 自动停止原因（如有）: {auto_stop_reason}
-- 用户反馈: {user_feedback}
+## Available Materials
+- Function documentation: `function_doc.md`
+- Requirements: `requirements.md`
+- Test plan: `test_plan.md`
+- Result analysis: `analysis.md`
+- Automatic stop reason (if any): {auto_stop_reason}
+- User feedback: {user_feedback}
 
-## 输出：`final_report.md`（使用 `write_file` 保存）
-仅允许写入 `final_report.md`，不要覆盖/修改其他产物；如需查看产物内容请使用 `read_file`。
-推荐结构：
-1. 执行摘要：一句话结论 + 关键发现/阻塞项。
-2. 测试范围：目标 FQN、环境（pytest + 依赖）、覆盖的场景/未覆盖项。
-3. 结果概览：用例总数，通过/失败/错误数量，主要失败点。
-4. 详细发现：按严重级别列出问题、根因、建议修复动作。
-5. 覆盖与风险：需求覆盖、尚未覆盖的边界/缺失信息。
-6. 后续动作：优先级排序的 TODO（修复测试/补充用例/环境调整）。
+## Output: `final_report.md` (save it using `write_file`)
+Only write to `final_report.md`. Do not overwrite or modify other artifacts. Use `read_file` if you need to inspect them.
+Recommended structure:
+1. Executive summary: a one-sentence conclusion plus key findings and blockers.
+2. Test scope: target FQN, environment (pytest and dependencies), covered scenarios, and uncovered items.
+3. Result overview: total number of cases, passed/failed/error counts, and the primary failure points.
+4. Detailed findings: list issues, root causes, and suggested fixes by severity.
+5. Coverage and risks: requirement coverage plus uncovered boundaries and missing information.
+6. Next actions: priority-ordered TODOs for test fixes, new cases, or environment adjustments.
 
-保持简洁、结构化，可供研发快速落地。不要在对话中粘贴全文，只写入文件。
+Keep the report concise and structured so engineers can act on it quickly. Do not paste the full report into the chat; write it only to the file.
 
-## 参考内容（来自上一阶段产物）
+## Reference Content (from the previous stage artifacts)
 ### function_doc.md
 {function_doc_md}
 
@@ -67,7 +67,7 @@ class ReportStage(Stage):
 """
     
     def get_prompt_vars(self, state, target, target_slug, test_file_path, output_binary):
-        reason = getattr(state, "auto_stop_reason", "") or "无"
+        reason = getattr(state, "auto_stop_reason", "") or "none"
         return {"auto_stop_reason": reason}
 
     def get_config(self) -> StageConfig:

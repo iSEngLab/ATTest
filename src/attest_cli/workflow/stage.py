@@ -81,7 +81,7 @@ class Stage(ABC):
         
         # Build project context
         project_config = config.get("project", {})
-        # 提供默认模板，防止配置缺失导致路径为空
+        # Provide a default template so missing config does not produce an empty path
         test_file_template = project_config.get("test_file_template") or "tests/test_{target_slug}.py"
         test_file_path = test_file_template.format(
             op=state.op,
@@ -168,7 +168,7 @@ class Stage(ABC):
             )
         
 
-        # 确保测试文件的父目录存在，避免工具调用时因目录缺失报错
+        # Ensure the parent directory of the test file exists so tool calls do not fail due to a missing directory
         try:
             cfg = load_config()
             project_config = cfg.get("project", {})
@@ -182,7 +182,7 @@ class Stage(ABC):
             )
             ensure_parent(Path(state.project_root) / test_file_path)
         except Exception:
-            # 静默忽略，避免影响主流程
+            # Ignore silently to avoid affecting the main workflow
             pass
 
         # Get tool schemas if needed
@@ -204,7 +204,7 @@ class Stage(ABC):
         
         # Multi-turn tool calling loop (like chat mode)
         session_id = getattr(state, "workflow_id", "workflow")
-        # 首条提示记录到日志
+        # Record the initial prompt in the log
         messages = [{"role": "user", "content": prompt}]
         append_message(
             session_id=session_id,
@@ -214,9 +214,9 @@ class Stage(ABC):
             stage=self.config.name,
         )
         outputs = {}
-        # 将工具执行目录固定到 project_root，确保写文件时自动创建缺失父目录
+        # Pin the tool execution directory to `project_root` so missing parent directories are created automatically when writing files
         ctx = ToolContext(cwd=str(state.project_root), auto_approve=True)
-        # 提前保存本阶段推荐的写入路径，方便缺参时给出提示
+        # Cache the recommended output path for this stage in advance so it can be suggested when required parameters are missing
         fallback_test_path = locals().get("test_file_path", "")
         block_edit_counts = {}
         
@@ -236,7 +236,7 @@ class Stage(ABC):
             assistant_msg = {
                 "role": "assistant",
                 "content": response.content,
-                # deepseek-reasoner 等模型需要带 reasoning_content 字段
+                # deepseek-reasoner and similar models require the `reasoning_content` field
                 "reasoning_content": getattr(response, "reasoning_content", "") or ""
             }
             if response.tool_calls:
@@ -269,7 +269,7 @@ class Stage(ABC):
                 except json.JSONDecodeError:
                     tool_args = {}
                 
-                # 如果 write_file 调用缺少必需参数，直接返回带提示的错误，避免无意义的反复重试
+                # If `write_file` is called without required parameters, return a helpful error immediately to avoid pointless retries
                 if tool_name == "write_file":
                     missing = []
                     if not tool_args.get("path"):
@@ -278,8 +278,8 @@ class Stage(ABC):
                         missing.append("content")
                     if missing:
                         hint = (
-                            "write_file 需要同时提供 path 和 content。"
-                            + (f" 推荐路径: {fallback_test_path}" if fallback_test_path else "")
+                            "`write_file` requires both `path` and `content`."
+                            + (f" Recommended path: {fallback_test_path}" if fallback_test_path else "")
                         )
                         tool_msg = {
                             "role": "tool",
@@ -295,7 +295,7 @@ class Stage(ABC):
                             stage=self.config.name,
                         )
                         continue
-                    # generate_code 阶段禁止覆盖已存在文件，要求用局部修改
+                    # The `generate_code` stage must not overwrite existing files; use localized edits instead
                     if self.config.name == "generate_code":
                         file_arg = tool_args.get("path")
                         if file_arg:

@@ -5,14 +5,14 @@ from typing import Any, Dict, List, Optional
 from .config import CONFIG_DIR
 
 
-# 默认全局 sessions 目录，兼容旧行为
+# Default global sessions directory for backward compatibility
 DEFAULT_SESSIONS_DIR = CONFIG_DIR / "sessions"
 DEFAULT_SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _sessions_dir(workspace: Optional[str | Path] = None) -> Path:
     """
-    返回日志目录：优先写入 workspace/.attest/logs，否则落到全局默认目录。
+    Return the log directory: prefer `workspace/.attest/logs`; otherwise fall back to the global default directory.
     """
     if workspace:
         base = Path(workspace) / ".attest" / "logs"
@@ -44,14 +44,14 @@ def append_message(
     stage: Optional[str] = None,
 ) -> None:
     """
-    追加一条消息到日志。
+    Append a message to the log.
 
     Args:
-        session_id: 会话/工作流 ID
-        role: user/assistant/tool 等
-        content: 任意内容（字符串或结构化数据）
-        workspace: 如提供则写入 workspace/.attest/logs
-        stage: 可选，标记所在阶段（工作流使用）
+        session_id: Session / workflow ID
+        role: user / assistant / tool, and so on
+        content: Arbitrary content (string or structured data)
+        workspace: If provided, write to `workspace/.attest/logs`
+        stage: Optional stage marker (used by the workflow)
     """
     rec: Dict[str, Any] = {"role": role, "content": content}
     if stage:

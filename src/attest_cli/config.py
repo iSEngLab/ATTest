@@ -20,15 +20,15 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "preferences": {
         "auto_approve": False,
     },
-    # Python 项目配置
+    # Python project configuration
     "project": {
         "root": ".",
         "test_file_template": "tests/test_{target_slug}.py",
         "build_dir": "",
         "output_binary_template": "",
-        "python_executable": ""  # 可选：指定用于检查/执行测试的 Python 解释器路径（如 /path/to/venv/bin/python）
+        "python_executable": ""  # Optional: specify the Python interpreter used for inspection and test execution, for example /path/to/venv/bin/python
     },
-    # 测试执行命令配置（默认使用 pytest）
+    # Test run command configuration (pytest by default)
     "commands": {
         "compile": "",
         "install": "",

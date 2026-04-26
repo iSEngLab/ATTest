@@ -253,7 +253,7 @@ class WorkflowEngine:
         self.state.last_block_errors = current_block_errors
 
         if prev_failure_sig and failure_sig and failure_sig == prev_failure_sig:
-            return "连续两轮失败用例集合不变，自动终止"
+            return "The set of failing cases did not change across two consecutive rounds; terminate automatically"
 
         if prev_error_sig and error_sig and error_sig == prev_error_sig:
             skip_blocks = []
@@ -266,7 +266,7 @@ class WorkflowEngine:
                 self._apply_skip_blocks(
                     plan,
                     skip_blocks,
-                    "连续两轮错误类型重复，跳过该代码块",
+                    "The error type repeated across two consecutive rounds; skip this code block",
                 )
             return None
 
@@ -286,9 +286,9 @@ class WorkflowEngine:
             mode: "interactive" or "full_auto"
         """
         self.state.mode = mode
-        # 关闭早停机制，清空历史早停原因
+        # Disable early stopping and clear historical early-stop reasons
         self.state.auto_stop_reason = ""
-        # Safety: avoid超出设定轮数的重复迭代（恢复时用已有轮次）
+        # Safety: avoid repeated iterations beyond the configured round limit (resume uses the persisted round count)
         if mode in {"full-auto", "full_auto"}:
             self.state.epoch_total = max(1, getattr(self.state, "epoch_total", 1))
             self.state.epoch_current = max(1, getattr(self.state, "epoch_current", 1))
@@ -378,11 +378,11 @@ class WorkflowEngine:
                     list(result.outputs.keys())
                 )
                 
-                # 显示产物摘要
+                # Show an artifact summary
                 if result.outputs:
                     print(f"\n  📦 Stage Outputs:")
                     for output_name in result.outputs.keys():
-                        # 尝试找到保存的文件
+                        # Try to locate the saved file
                         artifact_path = self.state.artifacts_dir / self.state.current_stage / f"current_{output_name}"
                         if artifact_path.exists():
                             size = artifact_path.stat().st_size
@@ -401,12 +401,12 @@ class WorkflowEngine:
                         self.state.advance_stage(self.STAGE_NAMES)
                     # For "goto", state.current_stage already updated
                 else:
-                    # Full auto - support epoch迭代（在 analyze_results 后回到 generate_code）
+                    # Full-auto mode supports epoch-style iteration (return to `generate_code` after `analyze_results`)
                     if mode in {"full-auto", "full_auto"} and stage.config.name == "analyze_results":
                         if getattr(self.state, "epoch_current", 1) < getattr(self.state, "epoch_total", 1):
                             self.state.epoch_current += 1
                             print(
-                                f"\n🔁 迭代 {self.state.epoch_current}/{self.state.epoch_total}，回到 Generate Code 阶段继续优化测试。"
+                                f"\n🔁 Iteration {self.state.epoch_current}/{self.state.epoch_total}: return to the Generate Code stage to continue improving the tests."
                             )
                             self.state.jump_to_stage("generate_code", self.STAGE_NAMES)
                         else:

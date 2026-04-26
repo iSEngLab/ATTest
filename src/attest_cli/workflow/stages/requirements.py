@@ -24,47 +24,47 @@ class RequirementsStage(Stage):
         )
     
     def _get_prompt_template(self) -> str:
-        return """你正在为 Python 目标 `{target_fqn}` 撰写测试需求说明。全文不超过 1200 字，只保留可执行约束/边界/异常/覆盖要点，禁止复制 function_doc 的长段落。
+        return """You are writing test requirements for the Python target `{target_fqn}`. Keep the document under 1200 words, retain only executable constraints, boundaries, exception scenarios, and coverage points, and do not copy long passages from `function_doc.md`.
 
-阶段：Stage 2 - 需求定义 → 输出 `requirements.md`
+Stage: Stage 2 - Define Requirements -> Output `requirements.md`
 
-## 步骤
-1) 用 `read_file` 读取 `function_doc.md`，提炼参数/返回/约束/副作用/风险。
-2) 编写 `requirements.md`，覆盖以下内容（保持结构与标题）：
+## Steps
+1) Use `read_file` to read `function_doc.md` and extract parameters, return values, constraints, side effects, and risks.
+2) Write `requirements.md` and cover the following content, preserving the structure and headings:
 
 ```markdown
-# {target_fqn} 测试需求
+# {target_fqn} Test Requirements
 
-## 1. 目标与范围
-- 主要功能与期望行为
-- 不在范围内的内容
+## 1. Goals and Scope
+- Main functionality and expected behavior
+- Out-of-scope content
 
-## 2. 输入与约束
-- 参数列表（名称、类型/shape、默认值）
-- 有效取值范围/维度/设备要求
-- 必需与可选组合
-- 随机性/全局状态要求
+## 2. Inputs and Constraints
+- Parameter list (name, type/shape, default value)
+- Valid value ranges, dimensionality, and device requirements
+- Required and optional combinations
+- Randomness and global-state requirements
 
-## 3. 输出与判定
-- 期望返回结构及关键字段
-- 容差/误差界（如浮点）
-- 状态变化或副作用检查点
+## 3. Outputs and Evaluation
+- Expected return structure and key fields
+- Tolerance / error bounds (for example, floating point)
+- State changes or side-effect checkpoints
 
-## 4. 错误与异常场景
-- 非法输入/维度/类型触发的异常或警告
-- 边界值（空、None、0 长度、极端形状/数值）
+## 4. Error and Exception Scenarios
+- Exceptions or warnings triggered by invalid inputs, shapes, or types
+- Boundary values (empty, None, zero length, extreme shapes/values)
 
-## 5. 依赖与环境
-- 外部资源/设备/网络/文件依赖
-- 需要 mock/monkeypatch 的部分（必须写出具体符号路径，如 `torch.nn.parallel.scatter_gather.scatter_kwargs`）
+## 5. Dependencies and Environment
+- External resource, device, network, or file dependencies
+- Parts that require mock/monkeypatch(you must provide concrete symbol paths, such as `torch.nn.parallel.scatter_gather.scatter_kwargs`)
 
-## 6. 覆盖与优先级
-- 必测路径（高优先级，最多 5 条，短句）
-- 可选路径（中/低优先级合并为一组列表）
-- 已知风险/缺失信息（仅列条目，不展开）
+## 6. Coverage and Priorities
+- Mandatory paths (high priority, at most 5 short items)
+- Optional paths (medium/low priority merged into one list)
+- Known risks / missing information (list items only, no expansion)
 ```
 
-只用 `write_file` 写入 `requirements.md`，不要在对话中粘贴全文。
+Use `write_file` only to write `requirements.md`. Do not paste the full content into the conversation.
 {user_feedback}
 """
     

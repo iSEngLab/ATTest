@@ -135,7 +135,7 @@ class WorkflowState:
             ensure_parent(artifact_path)
             artifact_path.write_text(str(content), encoding='utf-8')
             
-            # 显示保存路径
+            # Show the saved path
             relative_path = artifact_path.relative_to(self.workspace)
             print(f"  📄 Saved: {relative_path}")
             

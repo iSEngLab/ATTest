@@ -1,81 +1,81 @@
-# ATTest-CLI
+# ATTest
 
-一个可控的 CLI Agent，用于在固定的、人工批准的工作流下为 Python 算子/API（PyTorch、TensorFlow 等）生成和运行测试用例。
+A controllable CLI agent for generating and running tests for Python operators and APIs (such as PyTorch and TensorFlow) through a fixed, human-approved workflow.
 
-## ✨ 核心特性
+## ✨ Key Features
 
-### 双模式操作
-- **🔧 Tool Mode (Chat)**: 临时查询和文件操作
-- **🔄 Workflow Mode**: 7阶段智能测试生成流程
+### Dual-Mode Operation
+- **🔧 Tool Mode (Chat)**: Ad hoc queries and file operations
+- **🔄 Workflow Mode**: A 7-stage intelligent test generation pipeline
 
-### Workflow 亮点
-- **7 阶段流程**: 算子理解 → 需求生成 → 测试计划 → 代码生成 → 执行测试 → 结果分析 → 报告生成
-- **智能反馈**: 支持自然语言反馈和特殊命令（`/regenerate`, `/goto`, `/retry`）
-- **状态持久化**: 支持中断恢复，所有产物版本化管理
-- **自定义执行**: 可配置 pytest 命令、环境变量与依赖安装
+### Workflow Highlights
+- **7-stage pipeline**: Function understanding → requirements generation → test plan design → code generation → test execution → result analysis → report generation
+- **Smart feedback**: Supports natural-language feedback and special commands (`/regenerate`, `/goto`, `/retry`)
+- **Persistent state**: Supports interruption recovery, with versioned artifact management
+- **Custom execution**: Configurable pytest commands, environment variables, and dependency installation
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 安装
+### Installation
 
 ```bash
-cd ATTest-CLI
+cd ATTest
 pip install -e .
 ```
 
-### 基础使用
+### Basic Usage
 
-#### Chat 模式（临时任务）
+#### Chat Mode (Ad Hoc Tasks)
 
 ```bash
 attest chat --workspace ~/my-project
 ```
 
-#### Workflow 模式（完整测试生成）
+#### Workflow Mode (Full Test Generation)
 
 ```bash
-# 交互式模式（推荐）
-attest run -f torch.nn.functional.relu --workspace ~/my-project
+# Interactive mode (recommended)
+attest run -f torch.nn.functional.relu --workspace ./my-project/torch.nn.functional.relu
 
-# 全自动模式
-attest run -f torch.add --mode full-auto
+# Fully automatic mode
+attest run -f torch.add --mode full-auto --workspace ./my-project/torch.add
 
-# 全自动 + 多轮迭代优化（3 轮）
+# Fully automatic mode with multi-round iteration (3 rounds)
 attest run -f torch.add --mode full-auto --epoch 3
 
-# 指定项目根目录（当与 workspace 不同时）
-attest run -f torch.add --workspace ~/my-project --project-root ~/my-project/src
+# Specify the project root when it differs from workspace
+attest run -f torch.add --workspace ./my-project --project-root ./my-project/src
 
-# 恢复中断的工作流
+# Resume an interrupted workflow
 attest run -f torch.add --resume
 ```
 
 ---
 
-## 📖 文档
+## 📖 Documentation
 
-- **[WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md)** - 完整使用指南（推荐）
-  - Workflow 模式详解
-  - 配置自定义构建命令
-  - 测试与调试
-  - 扩展与定制
+- **[WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md)** - Complete usage guide (recommended)
+  - Detailed workflow mode walkthrough
+  - Custom build command configuration
+  - Testing and debugging
+  - Extension and customization
 
-- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - 快速参考卡片
-  - 常用命令速查
-  - Workflow 交互命令
-  - 配置示例
+- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Quick reference card
+  - Common command cheat sheet
+  - Workflow interactive commands
+  - Configuration examples
 
-- **[USAGE.md](./USAGE.md)** - Chat 模式使用指南
+- **[USAGE.md](./USAGE.md)** - Chat mode usage guide
 
 ---
 
-## 🎯  Workflow 7 阶段
+## 🎯 Workflow Stages
 
 ```
 ╔═══════════════════════════════════════════════════╗
-║   ATTest Workflow - torch.add (python)        ║
+║   ATTest Workflow - torch.add (python)           ║
 ╠═══════════════════════════════════════════════════╣
 ║ [●] 1. Understand Function                       ║
 ║ [●] 2. Generate Requirements                     ║
@@ -87,17 +87,17 @@ attest run -f torch.add --resume
 ╚═══════════════════════════════════════════════════╝
 ```
 
-每个阶段完成后可以：
-- `Enter` - 继续
-- `/regenerate` - 重新生成
-- `/goto <stage>` - 跳转
-- `自然语言反馈` - 智能理解
+After each stage completes, you can:
+- Press `Enter` to continue
+- Use `/regenerate` to regenerate the current stage
+- Use `/goto <stage>` to jump to another stage
+- Provide natural-language feedback for smart interpretation
 
 ---
 
-## 🔧 配置自定义构建命令
+## 🔧 Custom Build Commands
 
-需要调整 pytest 命令或环境变量时，编辑 `~/.attest_cli/config.json`：
+When you need to adjust the pytest command or environment variables, edit `~/.attest_cli/config.json`:
 
 ```json
 {
@@ -125,39 +125,39 @@ attest run -f torch.add --resume
 }
 ```
 
-**可用变量**:
-- `{target}` / `{target_slug}` - 目标函数 FQN 及其 slug
-- `{project_root}` - 项目根目录
-- `{test_file_path}` - 生成的 pytest 文件路径
+**Available variables**:
+- `{target}` / `{target_slug}` - Target function FQN and its slug
+- `{project_root}` - Project root directory
+- `{test_file_path}` - Generated pytest file path
 
-详见 [WORKFLOW_GUIDE.md - 配置自定义构建命令](./WORKFLOW_GUIDE.md#配置自定义构建命令)
+See [WORKFLOW_GUIDE.md - Custom Build Commands](./WORKFLOW_GUIDE.md#custom-build-commands) for details.
 
 ---
 
-## 📋 命令参考
+## 📋 Command Reference
 
-### 配置管理
-
-```bash
-attest config list              # 查看所有配置
-attest config set KEY VALUE     # 设置配置项
-attest config get KEY           # 获取配置项
-```
-
-### 会话管理
+### Configuration Management
 
 ```bash
-attest sessions list            # 列出所有会话
-attest sessions clear ID        # 清除指定会话
+attest config list              # Show all configuration values
+attest config set KEY VALUE     # Set a configuration value
+attest config get KEY           # Get a configuration value
 ```
 
-### Chat 模式
+### Session Management
+
+```bash
+attest sessions list            # List all sessions
+attest sessions clear ID        # Clear a specific session
+```
+
+### Chat Mode
 
 ```bash
 attest chat [--workspace DIR] [--auto-approve]
 ```
 
-### Workflow 模式
+### Workflow Mode
 
 ```bash
 attest run -f package.module:function \
@@ -168,59 +168,59 @@ attest run -f package.module:function \
   [--resume]
 ```
 
-**参数说明**：
-- `-f, --func`: 目标函数全限定名（必需）
-- `--workspace`: 工作目录，默认为当前目录
-- `--project-root`: 项目根目录，默认与 workspace 相同
-- `--mode`: 运行模式，`interactive` 或 `full-auto`，默认 `interactive`
-- `--epoch`: 全自动模式下的迭代轮数（在 analyze_results 后回到 generate_code 迭代），默认 1
-- `--resume`: 恢复中断的工作流
+**Arguments**:
+- `-f, --func`: Fully qualified target function name (required)
+- `--workspace`: Working directory, defaults to the current directory
+- `--project-root`: Project root directory, defaults to the same value as `workspace`
+- `--mode`: Run mode, either `interactive` or `full-auto`, defaults to `interactive`
+- `--epoch`: Number of iteration rounds in full-auto mode; after `analyze_results`, the workflow loops back to `generate_code`; defaults to `1`
+- `--resume`: Resume an interrupted workflow
 
 ---
 
-## 🛠️ 扩展与定制
+## 🛠️ Extension and Customization
 
-### 添加新 Tool
+### Add a New Tool
 
-1. 在 `src/attest_cli/tools/builtin.py` 创建 Tool 类
-2. 在 `src/attest_cli/tools/runner.py` 注册
-3. 在 Stage 的 `tools` 列表中使用
+1. Create a tool class in `src/attest_cli/tools/builtin.py`
+2. Register it in `src/attest_cli/tools/runner.py`
+3. Add it to a stage's `tools` list
 
-### 修改 Stage Prompt
+### Modify a Stage Prompt
 
-编辑对应的 Stage 文件（例如 `src/attest_cli/workflow/stages/requirements.py`），修改 `_get_prompt_template()` 方法。
+Edit the corresponding stage file, for example `src/attest_cli/workflow/stages/requirements.py`, and update `_get_prompt_template()`.
 
-### 添加新 Stage
+### Add a New Stage
 
-1. 创建 `src/attest_cli/workflow/stages/your_stage.py`
-2. 在 `stages/__init__.py` 中注册
-3. 在 `workflow/engine.py` 的 `STAGE_NAMES` 中添加
+1. Create `src/attest_cli/workflow/stages/your_stage.py`
+2. Register it in `stages/__init__.py`
+3. Add it to `STAGE_NAMES` in `workflow/engine.py`
 
-详见 [WORKFLOW_GUIDE.md - 扩展与定制](./WORKFLOW_GUIDE.md#扩展与定制)
+See [WORKFLOW_GUIDE.md - Extension and Customization](./WORKFLOW_GUIDE.md#extension-and-customization) for details.
 
 ---
 
-## 📂 项目结构
+## 📂 Project Structure
 
 ```
-ATTest-CLI/
+ATTest/
 ├── src/attest_cli/
-│   ├── cli.py                    # CLI 入口
-│   ├── config.py                 # 配置管理
-│   ├── llm.py                    # LLM 客户端
-│   ├── session.py                # 会话管理
-│   ├── chat.py                   # Chat 模式
-│   ├── tools/                    # 工具系统
+│   ├── cli.py                    # CLI entry point
+│   ├── config.py                 # Configuration management
+│   ├── llm.py                    # LLM client
+│   ├── session.py                # Session management
+│   ├── chat.py                   # Chat mode
+│   ├── tools/                    # Tool system
 │   │   ├── base.py
 │   │   ├── builtin.py
 │   │   └── runner.py
-│   └── workflow/                 # Workflow 引擎（新）
-│       ├── engine.py             # 主控制器
-│       ├── state.py              # 状态管理
-│       ├── stage.py              # Stage 基类
-│       ├── supervisor.py         # 反馈理解
-│       ├── display.py            # 进度显示
-│       └── stages/               # 各个阶段
+│   └── workflow/                 # Workflow engine
+│       ├── engine.py             # Main controller
+│       ├── state.py              # State management
+│       ├── stage.py              # Stage base class
+│       ├── supervisor.py         # Feedback interpretation
+│       ├── display.py            # Progress display
+│       └── stages/               # Individual stages
 │           ├── understand.py
 │           ├── requirements.py
 │           ├── planning.py
@@ -228,77 +228,77 @@ ATTest-CLI/
 │           ├── execution.py
 │           ├── analysis.py
 │           └── report.py
-├── WORKFLOW_GUIDE.md             # 完整使用指南
-├── QUICK_REFERENCE.md            # 快速参考
-└── USAGE.md                      # Chat模式指南
+├── WORKFLOW_GUIDE.md             # Complete usage guide
+├── QUICK_REFERENCE.md            # Quick reference
+└── USAGE.md                      # Chat mode guide
 ```
 
 ---
 
-## 🧪 测试
+## 🧪 Tests
 
 ```bash
-# 测试核心框架
+# Test the core framework
 python test_milestone1.py
 
-# 测试自定义命令
+# Test custom commands
 python test_custom_commands.py
 ```
 
 ---
 
-## 📝 示例
+## 📝 Examples
 
-### PyTorch 算子全自动工作流
+### Fully Automatic Workflow for a PyTorch Operator
 
 ```bash
 attest run -f torch.add --workspace ~/my-project --mode full-auto
 ```
 
-自动生成 pytest 用例、执行并输出测试报告。
+Automatically generates pytest cases, executes them, and produces a test report.
 
-### 带自定义 pytest 命令的工作流
-
-```bash
-attest config set commands.run_test "PYTHONPATH={project_root}:$PYTHONPATH pytest -q {test_file_path}"
-attest run -f torch.nn.functional.relu --workspace ~/my-project --mode interactive
-```
-
-使用自定义命令运行生成的测试（可在虚拟环境或 CI 中复用）。
-
-### Chat 模式快速检查
+### Workflow with a Custom Pytest Command
 
 ```bash
-attest chat --workspace ~/my-project --auto-approve
+attest config set commands.run_test "PYTHONPATH={project_root}:$PYTHONPATH pytest -q {test_file_path} -k gpu"
+attest run -f torch.add --workspace ~/my-project --mode full-auto
 ```
 
-临时查看/分析文件，或生成小片段测试代码。
+Uses a custom command to run the generated tests, which can be reused in a virtual environment or CI pipeline.
+
+### Quick Checks in Chat Mode
+
+```bash
+attest chat --workspace ~/my-project
+```
+
+Temporarily inspect or analyze files, or generate small testing snippets.
 
 ---
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎贡献！主要的扩展点：
-- 新的 Tool（文件操作、分析工具等）
-- 新的 Workflow Stage（性能测试、覆盖率分析等）
-- 改进的 Prompt 模板
-- 更好的错误处理
-
----
-
-## 📄 许可证
-
-MIT License
+Contributions are welcome. Main extension points include:
+- New tools (file operations, analysis utilities, and so on)
+- New workflow stages (performance testing, coverage analysis, and so on)
+- Improved prompt templates
+- Better error handling
 
 ---
 
-## 🙏 致谢
+## 📄 License
 
-灵感来源：
-- **CliAgent** - Flow-first 设计
-- **Cougar-CLI** - Config/Session 管理
-- **mini-kode** - 权限化工具执行
+MIT
 
 ---
 
-**快速开始**: 查看 [WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md) 了解详细用法！
+## 🙏 Acknowledgements
+
+Inspired by:
+- **CliAgent** - Flow-first design
+- **Cougar-CLI** - Config and session management
+- **mini-kode** - Permission-aware tool execution
+
+---
+
+**Quick start**: See [WORKFLOW_GUIDE.md](./WORKFLOW_GUIDE.md) for detailed usage.
